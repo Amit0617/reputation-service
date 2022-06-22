@@ -1,3 +1,7 @@
+export enum Harmony {
+    HARMONY = "harmony"
+}
+
 export enum HarmonyReputationLevel {
     Gold = "gold",
     Silver = "silver",
@@ -18,7 +22,7 @@ type HarmonyReputationLevelCriteria = {
 }[]
 
 export type HarmonyReputationAllLevelCriteria = {
-    provider: "harmony"
+    provider: Harmony
     parameters: ReputationParameters
     reputationLevels: HarmonyReputationLevelCriteria
 }

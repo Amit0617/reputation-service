@@ -2,9 +2,9 @@ import { ReputationLevel, OAuthProvider } from "@interep/reputation"
 import { TelegramGroup } from "@interep/telegram-bot"
 import { EmailDomain } from "src/core/email"
 import { PoapEvent } from "src/core/poap"
-import { HarmonyReputationLevel } from "src/core/harmony"
+import { Harmony, HarmonyReputationLevel } from "src/core/harmony"
 
-export type Provider = OAuthProvider | "poap" | "telegram" | "email" | "harmony"
+export type Provider = OAuthProvider |"poap" | "telegram" | "email" | Harmony
 export type GroupName = ReputationLevel | PoapEvent | TelegramGroup | EmailDomain | HarmonyReputationLevel
 
 export type Group = {

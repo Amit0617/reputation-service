@@ -27,6 +27,8 @@ import { FaGithub, FaRedditAlien, FaTwitter } from "react-icons/fa"
 import { MdArrowBack } from "react-icons/md"
 import { GroupBox, GroupBoxButton, GroupBoxContent, GroupBoxHeader } from "src/components/group-box"
 import EthereumWalletContext from "src/context/EthereumWalletContext"
+import { Harmony, HarmonyReputationAllLevelCriteria } from "src/core/harmony"
+import getHarmonyReputationCriteria from "src/core/harmony/getHarmonyReputationCriteria"
 import useGroups from "src/hooks/useGroups"
 import { Group } from "src/types/groups"
 import { capitalize } from "src/utils/common"
@@ -46,13 +48,13 @@ export default function OAuthGroupPage(): JSX.Element {
     const { _account, _identityCommitment } = useContext(EthereumWalletContext)
     const [_hasJoined, setHasJoined] = useState<boolean>()
     const [_group, setGroup] = useState<Group>()
-    const [_reputationCriteria, setReputationCriteria] = useState<ReputationCriteria>()
+    const [_reputationCriteria, setReputationCriteria] = useState<ReputationCriteria | HarmonyReputationAllLevelCriteria>()
     const { hasIdentityCommitment, joinGroup, getGroup, hasJoinedAGroup } = useGroups()
 
     useEffect(() => {
         ;(async () => {
             if (session) {
-                const reputationCriteria = getReputationCriteria(session.provider)
+                const reputationCriteria = Harmony? getHarmonyReputationCriteria() : getReputationCriteria(session.provider)
 
                 setReputationCriteria(reputationCriteria)
 

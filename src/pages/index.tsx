@@ -1,4 +1,5 @@
 import {
+    Button,
     Container,
     Heading,
     HStack,
@@ -28,12 +29,13 @@ import {
     VStack
 } from "@chakra-ui/react"
 import { getReputationCriteria, OAuthProvider, ReputationCriteria } from "@interep/reputation"
+import { getHarmonyReputationAllLevelCriteria, Harmony, HarmonyReputationAllLevelCriteria } from "src/core/harmony"
 import { Step, Steps } from "chakra-ui-steps"
 import { GetServerSideProps } from "next"
 import { signIn as _signIn } from "next-auth/client"
 import React, { useCallback, useContext, useEffect, useState } from "react"
 import { IconType } from "react-icons"
-import { FaGithub, FaRedditAlien, FaTwitter } from "react-icons/fa"
+import { FaGithub, FaRedditAlien, FaTwitter, FaDiscourse } from "react-icons/fa"
 import { GoSearch } from "react-icons/go"
 import { GroupBox, GroupBoxButton, GroupBoxHeader, GroupBoxOAuthContent } from "src/components/group-box"
 import EthereumWalletContext from "src/context/EthereumWalletContext"
@@ -41,28 +43,39 @@ import useGroups from "src/hooks/useGroups"
 import { Group } from "src/types/groups"
 import { capitalize } from "src/utils/common"
 import { groupBy, mapReputationRule } from "src/utils/frontend"
+import { hostname } from "os"
+// import { decryptMessage } from "src/core/webCrpyto"
+// import { decreptedKey, publicKey } from "src/core/crypto"
+// import {  } from "src/core/harmony/harmonyReputationLevelAndCriteria"
 
 const oAuthIcons: Record<string, IconType> = {
     twitter: FaTwitter,
     github: FaGithub,
-    reddit: FaRedditAlien
+    reddit: FaRedditAlien,
+    Harmony: FaDiscourse
 }
 
 export default function OAuthProvidersPage(): JSX.Element {
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure()
     const { _account } = useContext(EthereumWalletContext)
-    const [_reputationCriteria, setReputationCriteria] = useState<ReputationCriteria>()
+    const [_reputationCriteria, setReputationCriteria] = useState<ReputationCriteria | HarmonyReputationAllLevelCriteria>()
     const [_oAuthProviders, setOAuthProviders] = useState<[string, Group[]][]>()
+    // const [_harmonyProvider, setHarmonyProvider] = useState<[string, Group[]][]>()
     const [_searchValue, setSearchValue] = useState<string>("")
     const [_sortingValue, setSortingValue] = useState<string>("2")
     const { getGroups } = useGroups()
+    const [isClicked, setIsClicked] = useState<Boolean>(false)
+    const [encodedKey, setEncodedKey] = useState<BufferSource>()
+    const [privateKey, setPrivateKey] = useState<CryptoKey>()
+    const [publicKey, setPublicKey] = useState<CryptoKey>()
 
     useEffect(() => {
-        ;(async () => {
+        ; (async () => {
             const groups = await getGroups()
 
             if (groups) {
-                setOAuthProviders(groupBy(groups, "provider", Object.values(OAuthProvider)))
+                setOAuthProviders(groupBy(groups, "provider", Object.values(OAuthProvider && Harmony)))
+                // setHarmonyProvider(groupBy(groups, "provider", Object.values(Harmony)))
             }
         })()
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -99,12 +112,109 @@ export default function OAuthProvidersPage(): JSX.Element {
     )
 
     function openModal(oAuthProvider: OAuthProvider) {
-        const reputationCriteria = getReputationCriteria(oAuthProvider)
+        const reputationCriteria = Harmony ? getHarmonyReputationAllLevelCriteria() : getReputationCriteria(oAuthProvider)
 
         setReputationCriteria(reputationCriteria)
 
         onModalOpen()
     }
+
+
+    function _signInHarmony() {
+        setIsClicked(!isClicked)
+        // window.open("https://talk.harmony.one/login", "_blank")
+
+
+
+        // function getMessageEncoding() {
+        //     let message = "message" // some random text maybe
+        //     let enc = new TextEncoder();
+        //     return enc.encode(message);
+        // }
+
+        /*
+        Fetch the ciphertext and decrypt it.
+        Write the decrypted message into the "Decrypted" box.
+        */
+        async function decryptMessage(key: CryptoKey) {
+            const decrypted = await window.crypto.subtle.decrypt(
+                {
+                    name: "RSA-OAEP"
+                },
+                key,
+                encodedKey
+            );
+
+            const dec = new TextDecoder();
+            console.log("dec.decode", dec.decode(decrypted))
+            return dec.decode(decrypted);
+        }
+
+
+        /*
+        Generate an encryption key pair
+        */
+
+        window.crypto.subtle.generateKey(
+            {
+                name: "RSA-OAEP",
+                // Consider using a 4096-bit key for systems that require long-term security
+                modulusLength: 4096,
+                publicExponent: new Uint8Array([1, 0, 1]),
+                hash: "SHA-256",
+            },
+            true,
+            ["encrypt", "decrypt"]
+        ).then((keyPair) => {
+            console.log("Keypairs", keyPair.publicKey, keyPair.privateKey);
+
+            // export privateKey
+            setPrivateKey(keyPair.privateKey)
+            setPublicKey(keyPair.publicKey)
+            return keyPair.privateKey && keyPair.publicKey
+            // encryptMessage(keyPair.publicKey);
+            decryptMessage(keyPair.privateKey);
+        });
+
+
+        const url = new URL(`https://talk.harmony.one/user-api-key/new?application_name=interep-harmony`)
+
+        // url.searchParams.append('auth_redirect', 'http://localhost:3000/') // needs to ask permission from website admin
+        // url.searchParams.append('application_name', applicationName)
+        url.searchParams.append('client_id', hostname())
+        url.searchParams.append('scopes', 'write')
+        url.searchParams.append('public_key', publicKey.toString())
+        url.searchParams.append('nonce', '1')
+
+        window.open(url, "_blank")
+
+    }
+
+    async function checkValidity(encodedKey: BufferSource) {
+
+
+        // await fetch(`https://talk.harmony.one/u/${username}.json`)
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         console.log(data)
+        //         if (data.user.can_edit) {
+        //             alert("username verified")
+        //         }
+        //     })
+        // return summary.user.can_edit
+
+        // const trim = encodedKey.toString().trim().replace(/\s/g, '') // remove spaces
+        // setEncodedKey(trim.toBufferSource())
+        const json = decryptMessage(privateKey).toString()
+        const API = JSON.parse(json).key
+
+        console.log(`The API key is ${API}`)
+
+    }
+
+    const handleInput = (event) => {
+        setEncodedKey(event.target.value);
+    };
 
     return (
         <Container flex="1" mb="80px" mt="160px" px="80px" maxW="container.xl">
@@ -124,12 +234,15 @@ export default function OAuthProvidersPage(): JSX.Element {
                 </HStack>
             </Stack>
 
+            {/* Steps to join social network groups */}
+
             <Steps activeStep={0} colorScheme="background" size="sm" my="12">
                 <Step label="Authorize provider" />
                 <Step label="Generate Semaphore ID" />
                 <Step label="Join social network group" />
             </Steps>
 
+            {/* Search authorising social media networks */}
             <HStack justify="space-between" mt="80px" mb="10">
                 <InputGroup maxWidth="250px">
                     <InputLeftElement pointerEvents="none">
@@ -144,6 +257,7 @@ export default function OAuthProvidersPage(): JSX.Element {
                     />
                 </InputGroup>
 
+                {/* Sort social networks in alphabetical or inverted order or with most members first */}
                 <Select
                     value={_sortingValue}
                     onChange={(event) => setSortingValue(event.target.value)}
@@ -169,16 +283,24 @@ export default function OAuthProvidersPage(): JSX.Element {
                                     icon={oAuthIcons[p[0]]}
                                     groups={p[1]}
                                 />
-                                <GroupBoxButton
-                                    alertTitle="Confirm authorization"
-                                    alertMessage={`Interep wants to connect with the last ${capitalize(
-                                        p[0]
-                                    )} account you logged into. Approving this message will open a new window.`}
-                                    onClick={() => _signIn(p[0])}
-                                    disabled={!_account}
-                                >
-                                    Authorize
-                                </GroupBoxButton>
+                                {isClicked ?
+                                    (
+                                        <Stack>
+                                            <Input isInvalid onChange={handleInput} placeholder="Paste the key you got after logging in" size="md" />
+                                            <Button onClick={() => checkValidity(encodedKey)} />
+                                        </Stack>
+                                    ) : (
+                                        <GroupBoxButton
+                                            alertTitle="Confirm authorization"
+                                            alertMessage={`Interep wants to connect with the last ${capitalize(
+                                                p[0]
+                                            )} account you logged into. Approving this message will open a new window.`}
+                                            // {isClicked? onClick={()=> openInputBox()} : }
+                                            onClick={() => Harmony ? _signInHarmony() : _signIn(p[0])}
+                                            disabled={!_account}
+                                        >
+                                            Authorize
+                                        </GroupBoxButton>)}
                             </GroupBox>
                         ))}
                 </SimpleGrid>

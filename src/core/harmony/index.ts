@@ -1,13 +1,15 @@
-import HarmonyCriteria, { HarmonyReputationLevel } from "./harmonyReputationLevelAndCriteria"
+import {Harmony, HarmonyReputationAllLevelCriteria, HarmonyReputationLevel } from "./harmonyReputationLevelAndCriteria"
 import getHarmonyReputationLevel from "./getHarmonyReputationLevel"
 import getHarmonyReputationAllLevelCriteria from "./getHarmonyReputationCriteria"
 import calculateHarmonyReputation, { HarmonyParameters } from "./calculateHarmonyReputation"
+import getHarmonyProvider from "./getHarmonyProvider"
 
 export {
     HarmonyReputationLevel,
-    HarmonyCriteria,
+    Harmony,
     getHarmonyReputationLevel,
     getHarmonyReputationAllLevelCriteria,
-    calculateHarmonyReputation
+    calculateHarmonyReputation,
+    getHarmonyProvider
 }
-export type { HarmonyParameters }
+export type { HarmonyParameters, HarmonyReputationAllLevelCriteria }

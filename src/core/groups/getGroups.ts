@@ -4,6 +4,7 @@ import { getPoapEvents } from "src/core/poap"
 import { Group, Provider } from "src/types/groups"
 import { getProviders } from "."
 import { getEmailDomains } from "../email"
+import { getHarmonyReputationLevel, Harmony } from "../harmony"
 import getGroup from "./getGroup"
 
 export default async function getGroups(provider?: Provider): Promise<Group[]> {
@@ -24,6 +25,12 @@ export default async function getGroups(provider?: Provider): Promise<Group[]> {
             const emailDomains = getEmailDomains()
 
             return Promise.all(emailDomains.map((emailDomain) => getGroup(provider, emailDomain)))
+        }
+
+        if (provider === Harmony.HARMONY) {
+            const harmonyRepuationLevels = getHarmonyReputationLevel()
+
+            return Promise.all(harmonyRepuationLevels.map((harmonyReputationLevel) => getGroup(provider, harmonyReputationLevel)))
         }
 
         const reputationLevels = getReputationLevels()
