@@ -43,9 +43,11 @@ import useGroups from "src/hooks/useGroups"
 import { Group } from "src/types/groups"
 import { capitalize } from "src/utils/common"
 import { groupBy, mapReputationRule } from "src/utils/frontend"
+import sendRequest from "src/utils/frontend/api/sendRequest"
 import { hostname } from "os"
+
+// import { checkUsernameValidity, signInHarmony } from "src/utils/frontend/harmony"
 // import { decryptMessage } from "src/core/webCrpyto"
-// import { decreptedKey, publicKey } from "src/core/crypto"
 // import {  } from "src/core/harmony/harmonyReputationLevelAndCriteria"
 
 const oAuthIcons: Record<string, IconType> = {
@@ -65,7 +67,7 @@ export default function OAuthProvidersPage(): JSX.Element {
     const [_sortingValue, setSortingValue] = useState<string>("2")
     const { getGroups } = useGroups()
     const [isClicked, setIsClicked] = useState<Boolean>(false)
-    const [encodedKey, setEncodedKey] = useState<BufferSource>()
+    const [encodedKey, setEncodedKey] = useState<string>("")
     const [privateKey, setPrivateKey] = useState<CryptoKey>()
     const [publicKey, setPublicKey] = useState<CryptoKey>()
 
@@ -120,42 +122,36 @@ export default function OAuthProvidersPage(): JSX.Element {
     }
 
 
-    function _signInHarmony() {
+    async function _signInHarmony() {
         setIsClicked(!isClicked)
-        // window.open("https://talk.harmony.one/login", "_blank")
 
-
-
-        // function getMessageEncoding() {
-        //     let message = "message" // some random text maybe
-        //     let enc = new TextEncoder();
-        //     return enc.encode(message);
-        // }
-
-        /*
-        Fetch the ciphertext and decrypt it.
-        Write the decrypted message into the "Decrypted" box.
-        */
-        async function decryptMessage(key: CryptoKey) {
-            const decrypted = await window.crypto.subtle.decrypt(
-                {
-                    name: "RSA-OAEP"
-                },
-                key,
-                encodedKey
-            );
-
-            const dec = new TextDecoder();
-            console.log("dec.decode", dec.decode(decrypted))
-            return dec.decode(decrypted);
+        // Fresh working code 
+        // convert ArrayBuffer to string
+        function ab2str(buf: ArrayBuffer | Iterable<number>) {
+            return String.fromCharCode.apply(null, new Uint8Array(buf));
         }
 
+        /*
+        Export the given key and write it into the "exported-key" space.
+        */
+        async function exportCryptoKey(key) {
+            const exported = await crypto.subtle.exportKey(
+                "spki",
+                key
+            );
+            const exportedAsString = ab2str(exported);
+            const exportedAsBase64 = window.btoa(exportedAsString);
+            const pemExported = `-----BEGIN PUBLIC KEY-----\n${exportedAsBase64}\n-----END PUBLIC KEY-----`;
+
+            console.log("publicKey", pemExported);
+            return pemExported;
+        }
 
         /*
-        Generate an encryption key pair
-        */
-
-        window.crypto.subtle.generateKey(
+       Generate an encrypt/decrypt key pair,
+       then set up an event listener on the "Export" button.
+       */
+        await crypto.subtle.generateKey(
             {
                 name: "RSA-OAEP",
                 // Consider using a 4096-bit key for systems that require long-term security
@@ -166,49 +162,143 @@ export default function OAuthProvidersPage(): JSX.Element {
             true,
             ["encrypt", "decrypt"]
         ).then((keyPair) => {
-            console.log("Keypairs", keyPair.publicKey, keyPair.privateKey);
-
-            // export privateKey
             setPrivateKey(keyPair.privateKey)
             setPublicKey(keyPair.publicKey)
-            return keyPair.privateKey && keyPair.publicKey
-            // encryptMessage(keyPair.publicKey);
-            decryptMessage(keyPair.privateKey);
-        });
+            exportCryptoKey(keyPair.publicKey).then((publicKey) => {
+                const url = new URL(`https://talk.harmony.one/user-api-key/new?application_name=interep-harmony`)
 
+                // url.searchParams.append('auth_redirect', 'http://localhost:3000/') // needs to ask permission from website admin
+                // url.searchParams.append('application_name', applicationName)
+                url.searchParams.append('client_id', hostname())
+                url.searchParams.append('scopes', 'write')
+                url.searchParams.append('public_key', publicKey)
+                url.searchParams.append('nonce', '1')
 
-        const url = new URL(`https://talk.harmony.one/user-api-key/new?application_name=interep-harmony`)
-
-        // url.searchParams.append('auth_redirect', 'http://localhost:3000/') // needs to ask permission from website admin
-        // url.searchParams.append('application_name', applicationName)
-        url.searchParams.append('client_id', hostname())
-        url.searchParams.append('scopes', 'write')
-        url.searchParams.append('public_key', publicKey.toString())
-        url.searchParams.append('nonce', '1')
-
-        window.open(url, "_blank")
+                window.open(url, "_blank")
+            })
+        })
 
     }
 
-    async function checkValidity(encodedKey: BufferSource) {
 
 
-        // await fetch(`https://talk.harmony.one/u/${username}.json`)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         console.log(data)
-        //         if (data.user.can_edit) {
-        //             alert("username verified")
+
+
+    async function checkUsernameValidity(encodedKey: string) {
+
+        //     /**
+        //    * Method for decoding base64 String to ArrayBuffer
+        //    */
+        //     async function base64ToArrayBuffer(trim) {
+        //         if (typeof trim !== 'string') {
+        //             throw new TypeError('Expected input of trim to be a Base64 String')
         //         }
-        //     })
-        // return summary.user.can_edit
+        //         console.log("hi from base64ToArrayBuffer")
+        //         return decodeAb(trim)
+        //     }
 
-        // const trim = encodedKey.toString().trim().replace(/\s/g, '') // remove spaces
-        // setEncodedKey(trim.toBufferSource())
-        const json = decryptMessage(privateKey).toString()
-        const API = JSON.parse(json).key
+        /*
+            Fetch the ciphertext and decrypt it.
+        */
 
-        console.log(`The API key is ${API}`)
+
+        // let enc = new TextEncoder();
+        // trim =  enc.encode(trim);
+
+        // console.log("privateKey", privateKey, "ciphertext", trim)
+        // // convert string to arraybuffer
+        // // base64ToArrayBuffer(trim)
+        // //     .then((encryptedDataAb) => {
+        // //         console.log(typeof (encryptedDataAb), encryptedDataAb)
+        // //         decryptMessage(privateKey, encryptedDataAb)
+        // //     })
+        // // console.log("logging again", decryptedKey)})
+
+        function str2ab(str) {
+            const buf = new ArrayBuffer(str.length);
+            const bufView = new Uint8Array(buf);
+            for (let i = 0; i < str.length; i++) {
+                bufView[i] = str.charCodeAt(i);
+            }
+            return buf;
+        }
+
+
+
+        // const byteArray = new TextEncoder().encode(trim);
+        // const { buffer } = byteArray;
+
+        // const ab = decodeAb(trim)
+
+        // if (binaryDer === ab) console.log("yes")
+
+
+        // async function decryptMessage(privateKey: CryptoKey) {
+        // console.log("hi from decryptMessage")
+        // const arrayBuffer = Buffer.from(trim)
+        // console.log(privateKey, arrayBuffer)
+
+        // const dec = new TextDecoder()
+
+        // try {
+        async function decryptKey(privateKey: CryptoKey, ciphertext: BufferSource) {
+            const decrypted = await window.crypto.subtle.decrypt(
+                {
+                    name: "RSA-OAEP"
+                },
+                privateKey,
+                ciphertext
+            )
+            const dec = new TextDecoder()
+            const decryptedKey = dec.decode(decrypted)
+            return decryptedKey
+        }
+
+        // base64 decode the string to get the binary data
+        // await window.atob(encodedKey)
+        //     .then((binaryString) => str2ab(binaryString)
+        //         .then((arrayBuff) => {
+        //             decryptKey(privateKey, arrayBuff)
+        //             new Uint8Array(arrayBuff, 0, 5)
+        //         }))
+        
+        let trim = encodedKey.trim().replace(/\s/g, '')
+
+        const binaryDerString = window.atob(trim)
+        // convert from a binary string to an ArrayBuffer
+        const binaryDer = str2ab(binaryDerString);
+        // const binaryDer = Buffer.from(trim)
+
+        console.log(binaryDer)
+        const buffer = new Uint8Array(binaryDer, 0, 5);
+        console.log("buffer", buffer)
+
+        await decryptKey(privateKey, binaryDer)
+            .then((decryptedKey) => {
+                console.log(decryptedKey, JSON.parse(decryptedKey).toString())
+                console.log("passed await")
+            })
+
+        console.log("out of await")
+        // .then((decryptedKey: any) => {
+        // console.error(e)
+
+        // const json = decryptedKey.toString('ascii')
+        // console.info(`Done. The API key is ${JSON.parse(json).key}`)
+
+        // })
+        // } catch (error) {
+        // console.error(error);
+        // }
+
+
+
+        // console.log(dec.decode(decryptedKey));
+
+        // return decryptedKey
+        // }
+
+        // const decryptedKey = await decryptMessage(privateKey)
 
     }
 
@@ -287,7 +377,7 @@ export default function OAuthProvidersPage(): JSX.Element {
                                     (
                                         <Stack>
                                             <Input isInvalid onChange={handleInput} placeholder="Paste the key you got after logging in" size="md" />
-                                            <Button onClick={() => checkValidity(encodedKey)} />
+                                            <Button onClick={() => checkUsernameValidity(encodedKey)} />
                                         </Stack>
                                     ) : (
                                         <GroupBoxButton

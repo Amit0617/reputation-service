@@ -1,4 +1,4 @@
-import sendRequest from "./sendRequest"
+import sendRequest from "src/utils/frontend/api/sendRequest"
 
 global.fetch = jest.fn(() => ({
     json: () => ({ data: "Hello World" }),
