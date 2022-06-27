@@ -3,17 +3,12 @@ import { User } from "src/types/next-auth"
 import { HarmonyParameters } from "../harmony"
 
 export default async function mapHarmonyProfile({
-    id,
-    name,
-    users[0].username,
-    user_summary.likes_received,
-    user_summary.posts_read_count,
-    user_summary.post_count,
-    user_summary.time_read
+    users,
+    user_summary
 }: User): Promise<User & HarmonyParameters>{
     return {
-        id,
-        name,
+        id: users[0].id,
+        name: users[0].name,
         username: users[0].username,
         likes_received: user_summary.likes_received,
         posts_read_count: user_summary.posts_read_count,

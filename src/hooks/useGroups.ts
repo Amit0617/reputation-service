@@ -1,13 +1,14 @@
 import { OAuthProvider } from "@interep/reputation"
 import { useCallback, useState } from "react"
 import config from "src/config"
+import { Harmony } from "src/core/harmony"
 import { Group, Provider } from "src/types/groups"
 import { capitalize } from "src/utils/common"
 import useInterepAPI from "./useInterepAPI"
 import useToast from "./useToast"
 
 type ReturnParameters = {
-    hasJoinedAGroup: (provider: OAuthProvider) => Promise<boolean | null>
+    hasJoinedAGroup: (provider: OAuthProvider | Harmony) => Promise<boolean | null>
     getGroup: (provider: Provider, groupName: string) => Promise<Group | null>
     getGroups: () => Promise<Group[] | null>
     hasIdentityCommitment: (

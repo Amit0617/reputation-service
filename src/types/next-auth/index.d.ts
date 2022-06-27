@@ -16,6 +16,9 @@ declare module "next-auth" {
         provider: OAuthProvider | Harmony
         user: User
     }
+    interface Account extends Account {
+        username: string
+    }
 }
 
 declare module "next-auth/jwt" {

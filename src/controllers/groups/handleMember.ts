@@ -1,10 +1,12 @@
 import { MerkleTreeNode } from "@interep/db"
 import { NextApiRequest, NextApiResponse } from "next"
 import { checkGroup } from "src/core/groups"
+import { Harmony } from "src/core/harmony"
 import { GroupName, Provider } from "src/types/groups"
 import { getCors, logger, runAPIMiddleware } from "src/utils/backend"
 import { connectDatabase } from "src/utils/backend/database"
 import handleEmailMemberController from "./handleEmailMember"
+import handleHarmonyMemberController from "./handleHarmonyMember"
 import handleOAuthMemberController from "./handleOAuthMember"
 import handlePoapMemberController from "./handlePoapMember"
 import handleTelegramMemberController from "./handleTelegramMember"
@@ -70,6 +72,9 @@ export default async function handleMemberController(req: NextApiRequest, res: N
             break
         case "email":
             await handleEmailMemberController(req, res)
+            break
+        case Harmony.HARMONY:
+            await handleHarmonyMemberController(req, res)
             break
         default:
             await handleOAuthMemberController(req, res)

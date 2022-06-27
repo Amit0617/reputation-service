@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/interep-project" target="_blank">
+    <a href="https://github.com/amit0617/reputation-service" target="_blank">
         <img src="https://img.shields.io/badge/project-Interep-blue.svg?style=flat-square">
     </a>
     <a href="https://github.com/interep-project/reputation-service/actions/workflows/test.yaml">
@@ -29,7 +29,7 @@
 
 <div align="center">
     <h4>
-        <a href="https://docs.interep.link/contributing">
+        <!-- <a href="https://docs.interep.link/contributing">
             👥 Contributing
         </a>
         <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
@@ -39,32 +39,36 @@
         <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
         <a href="https://discord.gg/Tp9He7qws4">
             🗣️ Chat &amp; Support
-        </a>
+        </a> -->
     </h4>
 </div>
+<!-- 
+Please, visit our [web app](https://kovan.interep.link) or our [documentation website](https://docs.interep.link) for more details. -->
 
-Please, visit our [web app](https://kovan.interep.link) or our [documentation website](https://docs.interep.link) for more details.
-
+Interep-Harmony is an on-chain reputation service which allows people from harmony forum to get a globalised reputation through categorisation into different groups namely Gold, Silver, Bronze according to their engagement on the forum.
 ---
 
 ## Code overview
 
-This repository contains the frontend and backend code of the Interep application.
+This repository contains the frontend and backend code of the Interep-Harmony application.
 
-The backend code consists mainly of APIs, controllers and core functions. Next.js maps the application's [page](https://nextjs.org/docs/basic-features/pages) and [api routes](https://nextjs.org/docs/api-routes/introduction) to files in the `src/pages` directory. Each API is associated with a handler/controller in the `src/controllers` directory, which checks that the request parameters are correct. If these checks are passed and the request needs more complex logic, the core functions are used, otherwise the db methods are called directly.
+The backend code consists mainly of APIs, controllers and core functions. 
+Next.js maps the application's [page](https://nextjs.org/docs/basic-features/pages) and [api routes](https://nextjs.org/docs/api-routes/introduction) to files in the `src/pages` directory. Each API is associated with a handler/controller in the `src/controllers` directory, which checks that the request parameters are correct. If these checks are passed and the request needs more complex logic, the core functions(`src/core`) are used, otherwise the db methods are called directly.
 
 The frontend consists of the pages defined in the `src/pages` directory. These pages are React components that in turn use the shared components in the `components` directory. The style of the Web application is defined in the `src/styles` directory, while `src/context` and `src/hooks` contain React contexts and hooks respectively.
 
-The services in the `src/services` folder usually contain external services APIs, while the `src/tasks` folder contains tasks that run externally to Next.js. Finally, the `src/config.ts` file contains the environment variables and data about the Ethereum network and contracts.
+The services in the `src/services` folder usually contain external services APIs, while the `src/tasks` folder contains tasks that run externally to Next.js.
+
+Finally, the `src/config.ts` file contains the environment variables and data about the Ethereum network and contracts.
 
 The code is usually organized in modules (e.g. `src/core/groups`), where each function corresponds to a file with the same name, and an `index.ts` file exports all the functions of the module. Each module also contains an `index.test.ts` file where Jest tests are defined for each function in the module. Test files follow a standard structure for each module.
 
-## Install
+## Run Locally
 
-Clone this repository and install the dependencies:
+##### Clone this repository and install the dependencies:
 
 ```bash
-git clone https://github.com/interep-project/reputation-service.git
+git clone https://github.com/amit0617/reputation-service.git
 cd reputation-service
 yarn
 ```
@@ -103,7 +107,8 @@ yarn dev
 
 The pages auto-update as you edit files.
 
-To test all the features, you will need to deploy the Interep contracts in a [local network](https://github.com/interep-project/contracts/tree/main#preparing-a-local-network).
+### Running and Deploying Contracts
+To test all the features, you will need to deploy the Interep contracts in a [local network](https://github.com/amit0617/interep-contracts/tree/main#preparing-a-local-network).
 
 ### Running Interep (production)
 

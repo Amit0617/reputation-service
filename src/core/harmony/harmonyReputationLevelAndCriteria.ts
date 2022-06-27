@@ -14,11 +14,11 @@ type ReputationParameterType = "number" | "boolean"
 type ReputationParameterValue = number | boolean | { "<"?: number; ">"?: number }
 
 type ReputationParameters = { name: ReputationParameterName; type: ReputationParameterType }[]
-type ReputationRule = { parameter: ReputationParameterName; value: ReputationParameterValue }
+export type HarmonyReputationRule = { parameter: ReputationParameterName; value: ReputationParameterValue }
 
 type HarmonyReputationLevelCriteria = {
     name: HarmonyReputationLevel
-    rules: ReputationRule[]
+    rules: HarmonyReputationRule[]
 }[]
 
 export type HarmonyReputationAllLevelCriteria = {

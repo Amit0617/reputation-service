@@ -23,11 +23,11 @@ import { GetServerSideProps } from "next"
 import { signOut, useSession } from "next-auth/client"
 import React, { useCallback, useContext, useEffect, useState } from "react"
 import { IconType } from "react-icons"
-import { FaGithub, FaRedditAlien, FaTwitter } from "react-icons/fa"
+import { FaDiscourse, FaGithub, FaRedditAlien, FaTwitter } from "react-icons/fa"
 import { MdArrowBack } from "react-icons/md"
 import { GroupBox, GroupBoxButton, GroupBoxContent, GroupBoxHeader } from "src/components/group-box"
 import EthereumWalletContext from "src/context/EthereumWalletContext"
-import { Harmony, HarmonyReputationAllLevelCriteria } from "src/core/harmony"
+import { Harmony, HarmonyReputationAllLevelCriteria, HarmonyReputationLevel } from "src/core/harmony"
 import getHarmonyReputationCriteria from "src/core/harmony/getHarmonyReputationCriteria"
 import useGroups from "src/hooks/useGroups"
 import { Group } from "src/types/groups"
@@ -37,7 +37,8 @@ import { mapReputationRule } from "src/utils/frontend"
 const oAuthIcons: Record<string, IconType> = {
     twitter: FaTwitter,
     github: FaGithub,
-    reddit: FaRedditAlien
+    reddit: FaRedditAlien,
+    harmony: FaDiscourse
 }
 
 export default function OAuthGroupPage(): JSX.Element {
@@ -58,7 +59,7 @@ export default function OAuthGroupPage(): JSX.Element {
 
                 setReputationCriteria(reputationCriteria)
 
-                const group = await getGroup(session.provider, session.user.reputation as ReputationLevel)
+                const group = await getGroup(session.provider, session.user.reputation as ReputationLevel| HarmonyReputationLevel)
 
                 if (group) {
                     setGroup(group)
@@ -74,7 +75,7 @@ export default function OAuthGroupPage(): JSX.Element {
                 let hasJoined = await hasIdentityCommitment(
                     _identityCommitment,
                     session.provider,
-                    session.user.reputation as ReputationLevel
+                    session.user.reputation as ReputationLevel | HarmonyReputationLevel
                 )
 
                 if (hasJoined === null) {
@@ -108,7 +109,7 @@ export default function OAuthGroupPage(): JSX.Element {
     const join = useCallback(async () => {
         if (session && _identityCommitment && _group) {
             if (
-                await joinGroup(_identityCommitment, session.provider, session.user.reputation as ReputationLevel, {
+                await joinGroup(_identityCommitment, session.provider, session.user.reputation as ReputationLevel | HarmonyReputationLevel, {
                     accountId: session.accountId
                 })
             ) {

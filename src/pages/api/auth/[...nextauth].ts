@@ -4,7 +4,8 @@ import NextAuth, { Account, Session } from "next-auth"
 import { JWT } from "next-auth/jwt"
 import Providers from "next-auth/providers"
 import config from "src/config"
-import { createOAuthAccount, mapGithubProfile, mapRedditProfile, mapTwitterProfile } from "src/core/oauth"
+import { getHarmonyProvider, Harmony } from "src/core/harmony"
+import { createOAuthAccount, mapGithubProfile, mapHarmonyProfile, mapRedditProfile, mapTwitterProfile } from "src/core/oauth"
 import { User } from "src/types/next-auth"
 import { logger } from "src/utils/backend"
 
@@ -24,7 +25,21 @@ export default NextAuth({
             clientId: config.REDDIT_CLIENT_ID || "",
             clientSecret: config.REDDIT_CLIENT_SECRET || "",
             profile: mapRedditProfile
-        })
+        }),
+        {
+            id: "harmony",
+            name: "Harmony",
+            type: "oauth",
+            version: "1",
+            scope: "",
+            params: {grant_type: ""},
+            authorizationUrl: "https://talk.harmony.one/u/login/", 
+            accessTokenUrl: "",
+            profileUrl: "",
+            clientId:"",
+            clientSecret:"",
+            profile: mapHarmonyProfile
+        }
     ],
     pages: {
         signIn: "/"
@@ -35,14 +50,14 @@ export default NextAuth({
         secret: config.JWT_SECRET
     },
     callbacks: {
-        async signIn(user: User, account: Account) {
-            const providers = getOAuthProviders()
+        async signIn(user: User, account: Account){
+            const providers = getHarmonyProvider()
 
             if (
                 !account ||
                 !account.provider ||
                 !account.id ||
-                !providers.includes(account.provider as OAuthProvider)
+                !providers.includes(account.provider as Harmony)
             ) {
                 return false
             }
@@ -51,51 +66,76 @@ export default NextAuth({
                 if (await createOAuthAccount(user, account)) {
                     return true
                 }
-
+    
                 return "/error?error=insufficient-reputation"
             } catch (error: any) {
                 logger.error(error)
-
+    
                 return false
             }
-        },
-        async jwt(token: JWT, user: User, nextAuthAccount: Account) {
-            if (!nextAuthAccount?.provider || !(nextAuthAccount.provider.toUpperCase() in OAuthProvider)) {
-                return token
-            }
 
-            try {
-                const account = await OAuthAccount.findByProviderAccountId(
-                    nextAuthAccount.provider as OAuthProvider,
-                    nextAuthAccount.id
-                )
-
-                if (account) {
-                    token.accountId = account.id
-                    token.provider = nextAuthAccount.provider as OAuthProvider
-                    user.reputation = account.reputation as ReputationLevel
-                    token.user = user
-                }
-
-                return token
-            } catch (err) {
-                logger.error(err)
-
-                return token
-            }
-        },
-        async session(session: Session, token: JWT) {
-            if (!token) {
-                return session
-            }
-
-            if (token.provider) {
-                session.accountId = token.accountId
-                session.provider = token.provider
-                session.user = token.user
-            }
-
-            return session
         }
+        // async signIn(user: User, account: Account) {
+        //     const providers = getOAuthProviders()
+
+        //     if (
+        //         !account ||
+        //         !account.provider ||
+        //         !account.id ||
+        //         !providers.includes(account.provider as OAuthProvider)
+        //     ) {
+        //         return false
+        //     }
+
+        //     try {
+        //         if (await createOAuthAccount(user, account)) {
+        //             return true
+        //         }
+
+        //         return "/error?error=insufficient-reputation"
+        //     } catch (error: any) {
+        //         logger.error(error)
+
+        //         return false
+        //     }
+        // },
+        // async jwt(token: JWT, user: User, nextAuthAccount: Account) {
+        //     if (!nextAuthAccount?.provider || !(nextAuthAccount.provider.toUpperCase() in OAuthProvider)) {
+        //         return token
+        //     }
+
+        //     try {
+        //         const account = await OAuthAccount.findByProviderAccountId(
+        //             nextAuthAccount.provider as OAuthProvider,
+        //             nextAuthAccount.id
+        //         )
+
+        //         if (account) {
+        //             token.accountId = account.id
+        //             token.provider = nextAuthAccount.provider as OAuthProvider
+        //             user.reputation = account.reputation as ReputationLevel
+        //             token.user = user
+        //         }
+
+        //         return token
+        //     } catch (err) {
+        //         logger.error(err)
+
+        //         return token
+        //     }
+        // },
+        // async session(session: Session, token: JWT) {
+        //     if (!token) {
+        //         return session
+        //     }
+
+        //     if (token.provider) {
+        //         session.accountId = token.accountId
+        //         session.provider = token.provider
+        //         session.user = token.user
+        //     }
+
+        //     return session
+        // }}
     }
 })
