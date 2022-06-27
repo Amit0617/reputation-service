@@ -27,9 +27,9 @@
     <img alt="Repository top language" src="https://img.shields.io/github/languages/top/interep-project/reputation-service?style=flat-square">
 </p>
 
-<div align="center">
+<!-- <div align="center">
     <h4>
-        <!-- <a href="https://docs.interep.link/contributing">
+        <a href="https://docs.interep.link/contributing">
             👥 Contributing
         </a>
         <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
@@ -39,9 +39,9 @@
         <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
         <a href="https://discord.gg/Tp9He7qws4">
             🗣️ Chat &amp; Support
-        </a> -->
+        </a>
     </h4>
-</div>
+</div> -->
 <!-- 
 Please, visit our [web app](https://kovan.interep.link) or our [documentation website](https://docs.interep.link) for more details. -->
 
